@@ -63,7 +63,7 @@ class MaskedAutoencoderViT(nn.Module):
         mask_tensor[:, id_restoration] = 0
 
         # Apply the mask to the input to the decoder
-        decoder_embed = decoder_embed * mask_tensor
+        #decoder_embed = decoder_embed * mask_tensor
           
         self.decoder_norm = norm_layer(decoder_embed_dim)
         self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * in_chans, bias=True) # decoder to patch
