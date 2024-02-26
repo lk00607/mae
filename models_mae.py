@@ -22,9 +22,9 @@ from util.pos_embed import get_2d_sincos_pos_embed
 class MaskedAutoencoderViT(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-    def __init__(self, img_size=224, patch_size=32, in_chans=3,
+    def __init__(self, img_size=224, patch_size=16, in_chans=3,
                  embed_dim=1024, depth=24, num_heads=16,
-                 decoder_embed_dim=512, decoder_depth=18, decoder_num_heads=16,
+                 decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                  mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=False):
         super().__init__()
 
@@ -56,13 +56,13 @@ class MaskedAutoencoderViT(nn.Module):
                      
         #id_keep and id_restoration will be used to create a mask tensor to be applied to the input of the decoder to identify
         #which parts of the input(i.e.:pixels) are kept and which parts will be restored to their original value
-        #id_keep = [[83, 32, 63, 115, 167, 20, 124, 186, 57, 136, 114, 99, 59, 194, 34, 113, 133, 144, 51, 95, 103, 107, 175, 75, 157, 84, 42, 161, 68, 100, 85, 191, 49, 14, 15, 130, 137, 65, 188, 180, 31, 106, 13, 38, 21, 158, 79, 131, 12, 2, 69, 138, 109, 128, 50, 55, 27, 189, 98, 26, 25, 30, 155, 116, 3, 22, 117, 97, 193, 46, 108, 53, 177, 147, 121, 47, 134, 86]]
-        #id_restoration = [[168, 116, 49, 64, 166, 163, 177, 167, 99, 147, 144, 194, 48, 42, 33, 34, 89, 131, 125, 87, 5, 44, 65, 108, 86, 60, 59, 56, 137, 149, 61, 40, 1, 118, 14, 193, 103, 133, 43, 84, 124, 160, 26, 110, 132, 81, 69, 75, 90, 32, 54, 18, 78, 71, 85, 55, 141, 8, 146, 12, 169, 180, 143, 2, 88, 37, 135, 170, 28, 50, 175, 127, 145, 104, 191, 23, 129, 106, 190, 46, 161, 164, 192, 0, 25, 30, 77, 109, 91, 107, 117, 121, 80, 174, 195, 19, 130, 67, 58, 11, 29, 181, 148, 20, 188, 102, 41, 21, 70, 52, 134, 113, 122, 15, 10, 3, 63, 66, 151, 155, 185, 74, 119, 105, 6, 178, 115, 97, 53, 162, 35, 47, 172, 16, 76, 114, 9, 36, 51, 83, 128, 157, 140, 153, 17, 173, 98, 73, 139, 158, 179, 189, 92, 159, 176, 62, 82, 24, 45, 186, 152, 27, 120, 112, 123, 156, 184, 4, 142, 136, 138, 150, 187, 94, 95, 22, 111, 72, 183, 79, 39, 93, 126, 96, 171, 101, 7, 182, 38, 57, 154, 31, 165, 68, 13, 100]] 
+        id_keep = [[83, 32, 63, 115, 167, 20, 124, 186, 57, 136, 114, 99, 59, 194, 34, 113, 133, 144, 51, 95, 103, 107, 175, 75, 157, 84, 42, 161, 68, 100, 85, 191, 49, 14, 15, 130, 137, 65, 188, 180, 31, 106, 13, 38, 21, 158, 79, 131, 12, 2, 69, 138, 109, 128, 50, 55, 27, 189, 98, 26, 25, 30, 155, 116, 3, 22, 117, 97, 193, 46, 108, 53, 177, 147, 121, 47, 134, 86]]
+        id_restoration = [[168, 116, 49, 64, 166, 163, 177, 167, 99, 147, 144, 194, 48, 42, 33, 34, 89, 131, 125, 87, 5, 44, 65, 108, 86, 60, 59, 56, 137, 149, 61, 40, 1, 118, 14, 193, 103, 133, 43, 84, 124, 160, 26, 110, 132, 81, 69, 75, 90, 32, 54, 18, 78, 71, 85, 55, 141, 8, 146, 12, 169, 180, 143, 2, 88, 37, 135, 170, 28, 50, 175, 127, 145, 104, 191, 23, 129, 106, 190, 46, 161, 164, 192, 0, 25, 30, 77, 109, 91, 107, 117, 121, 80, 174, 195, 19, 130, 67, 58, 11, 29, 181, 148, 20, 188, 102, 41, 21, 70, 52, 134, 113, 122, 15, 10, 3, 63, 66, 151, 155, 185, 74, 119, 105, 6, 178, 115, 97, 53, 162, 35, 47, 172, 16, 76, 114, 9, 36, 51, 83, 128, 157, 140, 153, 17, 173, 98, 73, 139, 158, 179, 189, 92, 159, 176, 62, 82, 24, 45, 186, 152, 27, 120, 112, 123, 156, 184, 4, 142, 136, 138, 150, 187, 94, 95, 22, 111, 72, 183, 79, 39, 93, 126, 96, 171, 101, 7, 182, 38, 57, 154, 31, 165, 68, 13, 100]] 
                    
         # This is where the mask tensor will be created using id_keep and id_restoration
-        #mask_tensor = torch.zeros(1, num_patches + 1, decoder_embed_dim)
-        #mask_tensor[:, id_keep] = 1 #Only the parts of the input specified in id_keep will be kept, but the rest will be 0
-        #mask_tensor[:, id_restoration] = 0 # Only the parts of the input specified in id_restoration will gain back their original values
+        mask_tensor = torch.zeros(1, num_patches + 1, decoder_embed_dim)
+        mask_tensor[:, id_keep] = 1 #Only the parts of the input specified in id_keep will be kept, but the rest will be 0
+        mask_tensor[:, id_restoration] = 0 # Only the parts of the input specified in id_restoration will gain back their original values
 
         # Here, the mask is being applied to the input of the decoder, as mentioned above.The mask calculated must match the mask of the input image.
         #self.decoder_embed = self.decoder_embed * mask_tensor
