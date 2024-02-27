@@ -150,7 +150,7 @@ class MaskedAutoencoderViT(nn.Module):
 
         # keep the first subset
         ids_keep = [[83, 32, 63, 115, 167, 20, 124, 186, 57, 136, 114, 99, 59, 194, 34, 113, 133, 144, 51, 95, 103, 107, 175, 75, 157, 84, 42, 161, 68, 100, 85, 191, 49, 14, 15, 130, 137, 65, 188, 180, 31, 106, 13, 38, 21, 158, 79, 131, 12, 2, 69, 138, 109, 128, 50, 55, 27, 189, 98, 26, 25, 30, 155, 116, 3, 22, 117, 97, 193, 46, 108, 53, 177, 147, 121, 47, 134, 86]]
-        x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+        #x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
 
         # generate the binary mask: 0 is keep, 1 is remove
         mask = torch.ones([N, L], device=x.device)
